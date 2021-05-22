@@ -96,34 +96,20 @@ class MenuController extends BaseController
 
     public function getMenuItems() {
         $menuItems = MenuItem::all()->toArray();
-
-        $menu = array(
-            'items' => array(),
-            'parents' => array()
-        );
-
-        foreach ($menuItems as $key => $items) {
-            $menu['items'][$items['id']] = $items;
-            $menu['parents'][$items['parent_id']][] = $items['id'];
-        }
-
-        print_r($this->buildMenu('', $menu));
+        
+        return $this->buildMenu($menuItems, '');
     }
 
-    public function buildMenu($parent, $menu)
+    public function buildMenu($menu, $parent)
     {
-        $html = "";
-        $nestedMenuItemsArray = [];
-        if (isset($menu['parents'][$parent])) {
-            foreach ($menu['parents'][$parent] as $itemId) {
-                if(!isset($menu['parents'][$itemId])) {
-                    $nestedMenuItemsArray[$parent] = $menu['items'][$itemId];
+        $nestedMenuItemsArray = array();
+        foreach ($menu as $element) {
+            if ($element['parent_id'] == $parent) {
+                $children = $this->buildMenu($menu, $element['id']);
+                if ($children) {
+                    $element['children'] = $children;
                 }
-                if(isset($menu['parents'][$itemId])) {
-                    $index = ($parent == '') ? 0 : $parent;
-                    $nestedMenuItemsArray[$index] = $menu['items'][$itemId];
-                    $this->buildMenu($itemId, $menu);
-                }
+                $nestedMenuItemsArray[] = $element;
             }
         }
 
